@@ -1,0 +1,92 @@
+WITH GRADE_TEMP AS (
+    SELECT
+        SUM(CODE) AS A,
+        0 AS B,
+        0 AS C
+    FROM SKILLCODES
+        WHERE CATEGORY = 'Front End' 
+    UNION
+    SELECT
+        0 AS A,
+        SUM(CODE) AS B,
+        0 AS C
+    FROM SKILLCODES
+        WHERE NAME = 'C#'
+    UNION
+    SELECT
+        0 AS A,
+        0 AS B,
+        SUM(CODE) AS C
+    FROM SKILLCODES
+        WHERE NAME = 'Python'
+),
+GRADE_TABLE AS (
+    SELECT
+        MAX(A) AS FRONT,
+        MAX(B) AS CS,
+        MAX(C) AS PYTHON
+    FROM GRADE_TEMP
+),
+GRADE_STATISTICS AS (
+    SELECT
+        CASE
+            WHEN (SKILL_CODE & FRONT) AND (SKILL_CODE & PYTHON) THEN 'A'
+            WHEN SKILL_CODE & CS THEN 'B'
+            WHEN SKILL_CODE & FRONT THEN 'C'
+        END AS GRADE,
+        ID,
+        EMAIL
+    FROM DEVELOPERS, GRADE_TABLE
+)
+SELECT
+    GRADE,
+    ID,
+    EMAIL
+FROM GRADE_STATISTICS
+WHERE GRADE IS NOT NULL
+ORDER BY GRADE ASC, ID ASC
+-- ------------------------------------------------
+WITH GRADE_TEMP AS (
+    SELECT
+        SUM(CODE) AS TOTAL,
+        'FRONT' AS SKILL
+    FROM SKILLCODES
+        WHERE CATEGORY = 'Front End' 
+    UNION
+    SELECT
+        SUM(CODE) AS TOTAL,
+        'CS' AS SKILL
+    FROM SKILLCODES
+        WHERE NAME = 'C#'
+    UNION
+    SELECT
+        SUM(CODE) AS TOTAL,
+        'PYTHON' AS SKILL
+    FROM SKILLCODES
+        WHERE NAME = 'Python'
+),
+GRADE_TABLE AS (
+    SELECT
+        MAX(CASE WHEN SKILL = 'FRONT' THEN TOTAL END) AS FRONT,
+        MAX(CASE WHEN SKILL = 'CS' THEN TOTAL END) AS CS,
+        MAX(CASE WHEN SKILL = 'PYTHON' THEN TOTAL END) AS PYTHON
+    FROM GRADE_TEMP
+),
+GRADE_STATISTICS AS (
+    SELECT
+        CASE
+            WHEN (SKILL_CODE & FRONT) AND (SKILL_CODE & PYTHON) THEN 'A'
+            WHEN SKILL_CODE & CS THEN 'B'
+            WHEN SKILL_CODE & FRONT THEN 'C'
+        END AS GRADE,
+        ID,
+        EMAIL
+    FROM DEVELOPERS, GRADE_TABLE
+)
+SELECT
+    GRADE,
+    ID,
+    EMAIL
+FROM GRADE_STATISTICS
+WHERE GRADE IS NOT NULL
+ORDER BY GRADE ASC, ID ASC
